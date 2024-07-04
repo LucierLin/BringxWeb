@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>jQuery Dropdown Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      /* 简单的CSS样式 */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .btnClass {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btnClass input {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease-in-out;
+        width: 200px;
+      }
+
+      .btnClass input:focus {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        outline: none;
+      }
+
+      .btnClass button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #ffffff;
+        color: rgb(22, 22, 22);
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(84, 84, 84, 0.8);
+        transition: box-shadow 0.3s ease-in-out;
+      }
+
+      .btnClass button:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+      }
+      .dropdown {
+        position: relative;
+        display: inline-block;
+        width: 200px;
+      }
+      .dropdown input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 100%;
+        max-height: 275px;
+        overflow-y: auto;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+      }
+      .dropdown-content div {
+        padding: 8px;
+        cursor: pointer;
+      }
+      .dropdown-content div:hover,
+      .dropdown-content div.highlight {
+        background-color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Select a State</h1>
+    <div class="dropdown">
+      <input type="text" id="stateInput" placeholder="Select a state" />
+      <div id="stateDropdown" class="dropdown-content"></div>
+    </div>
+    <h1>Click the button for request email</h1>
+    <div class="btnClass">
+      <input
+        type="email"
+        id="emailInput"
+        placeholder="Enter your email address"
+      />
+      <button id="sendButton">Send</button>
+    </div>
+    <script>
+      $(document).ready(function () {
+        // 定义API地址
+        var apiUrl =
+          "https://www.universal-tutorial.com/api/states/United States";
+
+        // 假设token存储在localStorage中
+        var token =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJqdXN0dG9sdWN5QHlhaG9vLmNvbS50dyIsImFwaV90b2tlbiI6IlAtNklEMjJQdXBVUGJBV05RcTRKdkV4dkNwejBVRjhKMWpySFJxcXZLZ2p1b1cxM05HcEpXY25RYTlyc0V0RVNYdFEifSwiZXhwIjoxNzIwMDc3NTg3fQ.SIctIwSHdZVgd1XCz5IkmQdRtgw5cS7VHRzPSFiOqcg";
+
+        // 如果token不存在，可以手动设置一个token用于测试
+        if (!token) {
+          token = "your_test_token_here";
+          localStorage.setItem("token", token);
+        }
+
+        // 使用jQuery的$.ajax方法发送GET请求
+        $.ajax({
+          url: apiUrl,
+          type: "GET",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          success: function (data) {
+            console.log("成功获取数据:", data);
+            var $dropdown = $("#stateDropdown");
+            // 将获取到的州数据填充到下拉菜单中
+            data.forEach(function (state) {
+              $dropdown.append(
+                $("<div>", {
+                  text: state.state_name,
+                  click: function () {
+                    $("#stateInput").val(state.state_name);
+                    $dropdown.hide();
+                  },
+                })
+              );
+            });
+          },
+          error: function (xhr, status, error) {
+            console.error("请求失败:", status, error);
+          },
+        });
+
+        var currentIndex = -1;
+
+        // 显示所有选项
+        function showAllOptions() {
+          $("#stateDropdown div").show();
+          $("#stateDropdown").show();
+          currentIndex = -1; // 重置索引
+        }
+        // 过滤功能
+        $("#stateInput").on("input", function () {
+          var filter = $(this).val().toLowerCase();
+          $("#stateDropdown div").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(filter) > -1);
+          });
+          $("#stateDropdown").show();
+          currentIndex = -1;
+        });
+
+        // 键盘导航功能
+        $("#stateInput").on("keydown", function (e) {
+          var $items = $("#stateDropdown div:visible");
+          if (e.key === "ArrowDown") {
+            currentIndex = (currentIndex + 1) % $items.length;
+            $items
+              .removeClass("highlight")
+              .eq(currentIndex)
+              .addClass("highlight");
+            scrollToHighlighted($items.eq(currentIndex));
+          } else if (e.key === "ArrowUp") {
+            currentIndex = (currentIndex - 1 + $items.length) % $items.length;
+            $items
+              .removeClass("highlight")
+              .eq(currentIndex)
+              .addClass("highlight");
+            scrollToHighlighted($items.eq(currentIndex));
+          } else if (e.key === "Enter") {
+            if (currentIndex >= 0) {
+              var selectedText = $items.eq(currentIndex).text();
+              $("#stateInput").val(selectedText);
+              $("#stateDropdown").hide();
+            }
+          }
+        });
+
+        // 滚动到高亮显示的选项
+        function scrollToHighlighted($item) {
+          var $dropdown = $("#stateDropdown");
+          var itemTop = $item.position().top;
+          var itemBottom = itemTop + $item.outerHeight();
+          var dropdownScrollTop = $dropdown.scrollTop();
+          var dropdownHeight = $dropdown.height();
+
+          if (itemTop < 0) {
+            $dropdown.scrollTop(dropdownScrollTop + itemTop);
+          } else if (itemBottom > dropdownHeight) {
+            $dropdown.scrollTop(
+              dropdownScrollTop + itemBottom - dropdownHeight
+            );
+          }
+        }
+
+        // 点击输入框时显示下拉菜单
+        $("#stateInput").on("focus", function () {
+          $("#stateDropdown").show();
+        });
+
+        // 点击其他地方时隐藏下拉菜单
+        $(document).on("click", function (event) {
+          if (!$(event.target).closest(".dropdown").length) {
+            $("#stateDropdown").hide();
+          }
+        });
+
+        $("#sendButton").on("click", function () {
+            alert("click");
+          var email = $("#emailInput").val();
+          var state = $("#stateInput").val();
+
+          // 假设后端API的URL为 /lucywebsite.com/emails
+          var apiEndpoint = "/lucywebsite.com/emails";
+
+          var emailReq = {
+            to: email,
+            subject: "Hello",
+            body: "The selected state is " + state,
+          };
+
+          $.ajax({
+            url: apiEndpoint,
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(emailReq),
+            success: function (response) {
+              console.log("Email sent successfully:", response);
+              alert("Email sent successfully!");
+            },
+            error: function (xhr, status, error) {
+              console.error("Error sending email:", status, error);
+              alert("Error sending email. Please try again.");
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
