@@ -94,46 +94,61 @@
     </div>
     <script>
       $(document).ready(function () {
-        // 定义API地址
-        var apiUrl =
+        // 获取访问令牌的API地址
+        var tokenApiUrl =
+          "https://www.universal-tutorial.com/api/getaccesstoken";
+        // 获取州数据的API地址
+        var statesApiUrl =
           "https://www.universal-tutorial.com/api/states/United States";
 
-        // 假设token存储在localStorage中
-        var token =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJqdXN0dG9sdWN5QHlhaG9vLmNvbS50dyIsImFwaV90b2tlbiI6IlAtNklEMjJQdXBVUGJBV05RcTRKdkV4dkNwejBVRjhKMWpySFJxcXZLZ2p1b1cxM05HcEpXY25RYTlyc0V0RVNYdFEifSwiZXhwIjoxNzIwMTY0MzY2fQ.Oc9KaVh0hKfGp_84PGCFt_Z2BsTXYMKbb_x8HhPDcy4";
+        // 获取访问令牌时需要的token和email
+        var apiToken =
+          "P-6ID22PupUPbAWNQq4JvExvCpz0UF8J1jrHRqqvKgjuoW13NGpJWcnQa9rsEtESXtQ"; // 替换为您的api-token
+        var userEmail = "justtolucy@yahoo.com.tw"; // 替换为您的email
 
-        // 如果token不存在，可以手动设置一个token用于测试
-        if (!token) {
-          token = "your_test_token_here";
-          localStorage.setItem("token", token);
-        }
-
-        // 使用jQuery的$.ajax方法发送GET请求
+        // 获取访问令牌
         $.ajax({
-          url: apiUrl,
+          url: tokenApiUrl,
           type: "GET",
           headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
+            "api-token": apiToken,
+            "user-email": userEmail,
           },
-          success: function (data) {
-            console.log("成功获取数据:", data);
-            var $dropdown = $("#stateDropdown");
-            // 将获取到的州数据填充到下拉菜单中
-            data.forEach(function (state) {
-              $dropdown.append(
-                $("<div>", {
-                  text: state.state_name,
-                  click: function () {
-                    $("#stateInput").val(state.state_name);
-                    $dropdown.hide();
-                  },
-                })
-              );
+          success: function (response) {
+            var accessToken = response.auth_token;
+            console.log("get token successfully:", accessToken);
+
+            // 使用访问令牌获取州数据
+            $.ajax({
+              url: statesApiUrl,
+              type: "GET",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json",
+              },
+              success: function (data) {
+                console.log("get states successfully:", data);
+                var $dropdown = $("#stateDropdown");
+                // 将获取到的州数据填充到下拉菜单中
+                data.forEach(function (state) {
+                  $dropdown.append(
+                    $("<div>", {
+                      text: state.state_name,
+                      click: function () {
+                        $("#stateInput").val(state.state_name);
+                        $dropdown.hide();
+                      },
+                    })
+                  );
+                });
+              },
+              error: function (error) {
+                console.error("fail to get states:", error);
+              },
             });
           },
-          error: function (xhr, status, error) {
-            console.error("请求失败:", status, error);
+          error: function (error) {
+            console.error("fail to get token:", error);
           },
         });
 
@@ -211,7 +226,7 @@
         });
 
         $("#sendButton").on("click", function () {
-            alert("click");
+          alert("click");
           var email = $("#emailInput").val();
           var state = $("#stateInput").val();
 
