@@ -11,10 +11,41 @@
         font-family: Arial, sans-serif;
         margin: 20px;
       }
+
+      .selector {
+        flex-direction: column;
+        margin-bottom: 15px;
+      }
+
+      .selector input{
+        padding: 5px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease-in-out;
+        width: 200px;
+      }
+
+      .form-row {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 15px;
+      }
+
+      .form-row label {
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      #emailBodyInput {
+        width: 600px;
+      }
+
       .btnClass {
         display: flex;
-        align-items: center;
-        gap: 10px;
+        flex-direction: column;
+        align-items: flex-start;
       }
 
       .btnClass input {
@@ -80,16 +111,38 @@
   <body>
     <h1>Select a State</h1>
     <div class="dropdown">
-      <input type="text" id="stateInput" placeholder="Select a state" />
-      <div id="stateDropdown" class="dropdown-content"></div>
+      <div class="selector">
+        <label for="stateInput"></label>
+        <input type="text" id="stateInput" placeholder="Select a state" />
+        <div id="stateDropdown" class="dropdown-content"></div>
+      </div>
     </div>
     <h1>Click the button for request email</h1>
     <div class="btnClass">
-      <input
-        type="email"
-        id="emailInput"
-        placeholder="Enter your email address"
-      />
+      <div class="form-row">
+        <label for="subjectInput">Email Subject</label>
+        <input
+          type="text"
+          id="subjectInput"
+          placeholder="Enter your email subject"
+        />
+      </div>
+      <div class="form-row">
+        <label for="emailBodyInput">Email Content</label>
+        <input
+          type="text"
+          id="emailBodyInput"
+          placeholder="Enter your email content"
+        />
+      </div>
+      <div class="form-row">
+        <label for="emailInput">Email Address</label>
+        <input
+          type="email"
+          id="emailInput"
+          placeholder="Enter your email address"
+        />
+      </div>
       <button id="sendButton">Send</button>
     </div>
     <script>
@@ -228,15 +281,16 @@
         $("#sendButton").on("click", function () {
           alert("click");
           var email = $("#emailInput").val();
-          var state = $("#stateInput").val();
+          var subject = $("#subjectInput").val();
+          var emailBody = $("#emailBodyInput").val();
 
           // 假设后端API的URL为 /lucywebsite.com/emails
           var apiEndpoint = "/lucywebsite.com/emails";
 
           var emailReq = {
             to: email,
-            subject: "Hello",
-            body: "The selected state is " + state,
+            subject: subject,
+            body: emailBody,
           };
 
           $.ajax({
